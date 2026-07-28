@@ -3,9 +3,18 @@
 Enterprise-grade autonomous customer onboarding platform that transforms unstructured client data (PDFs, SQL dumps, CSVs, JSON APIs) into validated, production-ready records using multimodal AI, multi-agent orchestration, human-in-the-loop review, and full observability
 
 ![Architecture](docs/architecture.png) 
+---
 
-### Why this project exists 
-Enterprise onboarding often takes **days or weeks** because customer data arrives in inconsistent formats, schemas evolve constantly, and validation rules are embedded in human workflows. This project demonstrates how I would design and operate a **production-ready AI integration platform** as a **Forward Deployed Engineer (FDE)**: - Understand ambiguous client data - Build adaptive ingestion pipelines - Orchestrate AI + deterministic validation - Keep humans in control - Deploy, monitor, and evaluate the system end-to-end
+## Why this project exists 
+
+Enterprise onboarding often takes **days or weeks** because customer data arrives in inconsistent formats, schemas evolve constantly, and validation rules are embedded in human workflows. 
+
+This project demonstrates how I would design and operate a **production-ready AI integration platform** as a **Forward Deployed Engineer (FDE)**: 
+- Understand ambiguous client data 
+- Build adaptive ingestion pipelines 
+- Orchestrate AI + deterministic validation 
+- Keep humans in control 
+- Deploy, monitor, and evaluate the system end-to-end
 ---
 
 ## FDE Lens 
