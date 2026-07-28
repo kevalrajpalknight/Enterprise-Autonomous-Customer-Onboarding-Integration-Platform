@@ -1964,10 +1964,14 @@ version = "0.1.0"
 source = { editable = "packages/schemas" }
 dependencies = [
     { name = "pydantic" },
+    { name = "sqlalchemy" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pydantic", specifier = ">=2.9.0" }]
+requires-dist = [
+    { name = "pydantic", specifier = ">=2.9.0" },
+    { name = "sqlalchemy", specifier = ">=2.0.0" },
+]
 
 [[package]]
 name = "shared"

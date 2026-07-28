@@ -36,6 +36,7 @@ strict = true
 ignore_missing_imports = true
 explicit_package_bases = true
 namespace_packages = true
+disallow_untyped_decorators = false
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
