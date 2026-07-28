@@ -1,0 +1,7 @@
+[project]
+name = "enterprise-autonomous-customer-onboarding-integration-platform"
+version = "0.1.0"
+description = "Enterprise-grade autonomous customer onboarding platform that transforms unstructured client data (PDFs, SQL dumps, CSVs, JSON APIs) into validated, production-ready records using multimodal AI, multi-agent orchestration, human-in-the-loop review, and full observability."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
