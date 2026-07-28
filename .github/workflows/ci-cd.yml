@@ -1,0 +1,168 @@
+name: OnboardAI Enterprise CI/CD
+
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main", "dev"]
+
+# Concurrency group to cancel outdated in-progress runs on the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------
+  # 1. Code Quality: Lint & Type Check (Parallel to Tests)
+  # ---------------------------------------------------------
+  quality:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run Ruff Linter
+        run: uv run ruff check .
+
+      - name: Run Ruff Formatter Check
+        run: uv run ruff format --check .
+
+      - name: Run Mypy Type Checker
+        run: uv run mypy .
+
+  # ---------------------------------------------------------
+  # 2. Integration Tests
+  # ---------------------------------------------------------
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    services:
+      # Spin up PostgreSQL and Redis purely for integration tests
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: onboardai
+          POSTGRES_PASSWORD: onboardai
+          POSTGRES_DB: onboardai
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run Pytest
+        env:
+          # Point the test runner to the GitHub Action services
+          DATABASE_URL: postgresql://onboardai:onboardai@localhost:5432/onboardai
+          REDIS_URL: redis://localhost:6379/0
+          # Dummy key so OpenAI clients can initialize during tests
+          OPENAI_API_KEY: sk-test-dummy-key
+        run: uv run pytest -v
+
+  # ---------------------------------------------------------
+  # 3. Docker Build & Push (Only on merge to main)
+  # ---------------------------------------------------------
+  build-and-push:
+    name: Build & Push Docker Images
+    needs: [quality, test] # Only run if tests and linting pass
+    # This ensures deployment ONLY happens when merging/pushing to main
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # Required to push to GHCR
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for API image
+        id: meta-api
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/onboardai-api
+          tags: |
+            type=sha,format=long
+            latest
+
+      - name: Build and push API & Worker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/api/Dockerfile
+          push: true
+          tags: ${{ steps.meta-api.outputs.tags }}
+          labels: ${{ steps.meta-api.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------
+  # 4. Deploy to AWS EC2 (Only on merge to main)
+  # ---------------------------------------------------------
+  deploy:
+    name: Deploy to Production
+    needs: build-and-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger EC2 Deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /opt/onboardai
+            # Pull the latest docker-compose.yml configuration
+            git pull origin main
+            # Log into GHCR
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            # Pull the new images built in the previous step
+            docker compose pull
+            # Restart the services seamlessly
+            docker compose up -d --remove-orphans
