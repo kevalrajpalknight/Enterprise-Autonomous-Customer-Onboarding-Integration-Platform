@@ -1,0 +1,6 @@
+[project]
+name = "prompts"
+version = "0.1.0"
+description = "LLM prompt templates for OnboardAI agents"
+requires-python = ">=3.12"
+dependencies = []
