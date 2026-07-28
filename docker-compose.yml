@@ -3,6 +3,7 @@ version: "3.9"
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: onboardai-db
     environment:
       POSTGRES_USER: onboardai
       POSTGRES_PASSWORD: onboardai
@@ -16,9 +17,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
+    container_name: onboardai-redis
     ports:
       - "6379:6379"
     healthcheck:
@@ -26,6 +29,48 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: onboardai-api
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./apps/api:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://onboardai:onboardai@postgres:5432/onboardai
+      - REDIS_URL=redis://redis:6379/0
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: onboardai-worker
+    command: celery -A core.celery_app worker --loglevel=info
+    volumes:
+      - ./apps/api:/app
+    environment:
+      - DATABASE_URL=postgresql://onboardai:onboardai@postgres:5432/onboardai
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:
