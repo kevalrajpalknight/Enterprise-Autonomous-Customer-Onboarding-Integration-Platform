@@ -82,12 +82,14 @@ dependencies = [
     { name = "asyncpg" },
     { name = "boto3" },
     { name = "fastapi" },
+    { name = "fastapi-limiter" },
     { name = "httpx" },
     { name = "passlib", extra = ["bcrypt"] },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "python-jose", extra = ["cryptography"] },
     { name = "python-multipart" },
+    { name = "redis" },
     { name = "schemas" },
     { name = "shared" },
     { name = "sqlalchemy" },
@@ -100,12 +102,14 @@ requires-dist = [
     { name = "asyncpg", specifier = ">=0.30.0" },
     { name = "boto3", specifier = ">=1.35.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
+    { name = "fastapi-limiter", specifier = ">=0.1.6,<0.2.0" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "passlib", extras = ["bcrypt"], specifier = ">=1.7.4" },
     { name = "pydantic", specifier = ">=2.9.0" },
     { name = "pydantic-settings", specifier = ">=2.6.0" },
     { name = "python-jose", extras = ["cryptography"], specifier = ">=3.3.0" },
     { name = "python-multipart", specifier = ">=0.0.12" },
+    { name = "redis", specifier = ">=5.0.0" },
     { name = "schemas", editable = "packages/schemas" },
     { name = "shared", editable = "packages/shared" },
     { name = "sqlalchemy", specifier = ">=2.0.36" },
@@ -646,6 +650,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/2f/cb/7a4d2c2eb5a5d8a91763c05b7383d72917862e32f780daa0e27ffbb34cc6/fastapi-0.140.13.tar.gz", hash = "sha256:500172a08cf1459901f90b05c37d93060dada3b573fec8f0862445db52ba6b4b", size = 424843, upload-time = "2026-07-28T15:37:00.805Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/84/4e/f9e8c762ef5e05c40482131e3d5e8b36bca13fa127578261f1d6b35a25d4/fastapi-0.140.13-py3-none-any.whl", hash = "sha256:8b017110e1e9f30a95e8bdb8f71fbe2f0fe3af5717109e5b14f9e069df54f6d4", size = 131222, upload-time = "2026-07-28T15:37:02.124Z" },
+]
+
+[[package]]
+name = "fastapi-limiter"
+version = "0.1.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "redis" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7f/99/c7903234488d4dca5f9bccb4f88c2f582a234f0dca33348781c9cf8a48c6/fastapi_limiter-0.1.6.tar.gz", hash = "sha256:6f5fde8efebe12eb33861bdffb91009f699369a3c2862cdc7c1d9acf912ff443", size = 8307, upload-time = "2024-01-05T09:14:48.628Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cd/b5/6f6b4d18bee1cafc857eae12738b3a03b7d1102b833668be868938c57b9d/fastapi_limiter-0.1.6-py3-none-any.whl", hash = "sha256:2e53179a4208b8f2c8795e38bb001324d3dc37d2800ff49fd28ec5caabf7a240", size = 15829, upload-time = "2024-01-05T09:14:47.613Z" },
 ]
 
 [[package]]
