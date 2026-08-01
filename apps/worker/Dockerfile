@@ -14,30 +14,25 @@ RUN addgroup --system appgroup && adduser --system --group appuser
 
 # ── Deps: manifests + lock first for layer-cache on external packages ──
 COPY pyproject.toml uv.lock ./
-COPY apps/api/pyproject.toml apps/api/pyproject.toml
+COPY apps/worker/pyproject.toml apps/worker/pyproject.toml
 COPY packages/schemas/pyproject.toml packages/schemas/pyproject.toml
 COPY packages/shared/pyproject.toml packages/shared/pyproject.toml
 COPY packages/prompts/pyproject.toml packages/prompts/pyproject.toml
 
-RUN uv sync --package api --frozen --no-cache --no-install-workspace
+RUN uv sync --package worker --frozen --no-cache --no-install-workspace
 
 # ── Source: copy then install workspace packages in one pass ──
-COPY apps/api/src/ apps/api/src/
+COPY apps/worker/src/ apps/worker/src/
 COPY packages/schemas/src/ packages/schemas/src/
 COPY packages/shared/src/ packages/shared/src/
 COPY packages/prompts/src/ packages/prompts/src/
 
-RUN uv sync --package api --frozen --no-cache
+RUN uv sync --package worker --frozen --no-cache
 
 RUN chown -R appuser:appgroup /app
 USER appuser
 
 ENV PATH="/app/.venv/bin:$PATH"
-ENV PYTHONPATH="/app/apps/api/src"
+ENV PYTHONPATH="/app/apps/worker/src"
 
-EXPOSE 8000
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl --fail http://localhost:8000/health || exit 1
-
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["celery", "-A", "worker.main:celery_app", "worker", "--loglevel=info"]

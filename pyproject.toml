@@ -37,6 +37,14 @@ ignore_missing_imports = true
 explicit_package_bases = true
 namespace_packages = true
 disallow_untyped_decorators = false
+plugins = ["sqlalchemy.ext.mypy.plugin"]
+mypy_path = [
+    "apps/api/src",
+    "apps/worker/src",
+    "packages/schemas/src",
+    "packages/shared/src",
+    "packages/prompts/src",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

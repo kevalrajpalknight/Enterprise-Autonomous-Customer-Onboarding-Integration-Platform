@@ -19,5 +19,8 @@ class Settings(BaseSettings):
     # Storage
     max_upload_bytes: int = 50 * 1024 * 1024  # 50 MB
 
+    # Database
+    database_url: str = "postgresql+asyncpg://onboardai:onboardai@localhost:5432/onboardai"
+
 
 settings = Settings()
