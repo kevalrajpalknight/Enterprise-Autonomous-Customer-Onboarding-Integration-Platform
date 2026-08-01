@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse
 from fastapi_limiter import FastAPILimiter
 
 from api.config import settings
+from api.db.session import engine
 from api.routers import documents
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
     await FastAPILimiter.close()
     await redis_conn.aclose()
+    await engine.dispose()
 
 
 app = FastAPI(
