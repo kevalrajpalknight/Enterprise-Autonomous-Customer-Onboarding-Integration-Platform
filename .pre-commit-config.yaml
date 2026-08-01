@@ -18,3 +18,13 @@ repos:
         args: ["--maxkb=1000"]
       - id: no-commit-to-branch
         args: ["--branch", "main"]
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: uv run mypy
+        language: system
+        pass_filenames: false
+        args: [.]
+        types: [python]
