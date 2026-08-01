@@ -22,5 +22,12 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "postgresql+asyncpg://onboardai:onboardai@localhost:5432/onboardai"
 
+    # S3-compatible object storage (AWS S3 or Cloudflare R2)
+    s3_endpoint_url: str = "https://s3.amazonaws.com"
+    s3_access_key_id: str = ""
+    s3_secret_access_key: str = ""
+    s3_bucket_name: str = "onboardai-documents"
+    s3_region: str = "us-east-1"
+
 
 settings = Settings()
