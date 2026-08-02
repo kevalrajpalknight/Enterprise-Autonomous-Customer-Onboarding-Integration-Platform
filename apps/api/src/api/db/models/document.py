@@ -3,9 +3,10 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from enum import StrEnum
+from typing import Any
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db.base import Base
@@ -38,6 +39,7 @@ class Document(Base):
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+    parsed_payload: Mapped[dict[str, Any] | None] = mapped_column(JSONB(), nullable=True)
 
     customer: Mapped[Customer] = relationship("Customer", back_populates="documents", lazy="noload")
     workflow_runs: Mapped[list[WorkflowRun]] = relationship(

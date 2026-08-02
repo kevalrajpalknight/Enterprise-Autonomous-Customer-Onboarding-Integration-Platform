@@ -50,3 +50,5 @@ mypy_path = [
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests", "apps/api/tests", "apps/worker/tests"]
+pythonpath = ["apps/api/src", "apps/worker/src"]
+addopts = "--import-mode=importlib"

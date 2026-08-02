@@ -74,6 +74,12 @@ Alembic async migration suite with asyncpg driver. Five production tables:
 - Storage key scoped as `documents/{customer_id}/{document_id}{ext}` — raw bucket paths never exposed
 - Configurable entirely via `S3_*` environment variables
 
+#### Vision LLM Extraction (`apps/worker`)
+- Celery task `worker.extract_document` — downloads a PDF, renders each page (PyMuPDF), and runs vision extraction per page
+- `VisionLLMClient` abstract interface with a `langchain-openai` (`ChatOpenAI`) implementation — swapping model/provider/params is a config change, not a call-site change
+- Structured, field-level output (`ExtractedPayload`/`ExtractedField` in `packages/schemas`) with per-field confidence, persisted to `documents.parsed_payload` (JSONB)
+- Retries with exponential backoff on failure
+
 #### DevOps & Quality
 - **Docker**: Non-root multi-stage images for `api` and `worker`; build context is repo root for uv workspace support; `PYTHONPATH` explicitly set
 - **Docker Compose**: All secrets sourced from `.env`; no hardcoded credentials; health checks on all services
@@ -85,8 +91,8 @@ Alembic async migration suite with asyncpg driver. Five production tables:
 
 | Feature | Status |
 |---|---|
-| Celery task skeleton | Planned v1 |
-| DB persistence for uploaded documents | Planned v1 |
+| Structured parsers (CSV, Excel, SQL, JSON) | Planned v1 |
+| Field-level confidence scoring & quality signals | Planned v1 |
 | Workflow orchestration (LangGraph) | Planned v1 |
 | Mapper / Validator / Auditor agents | Planned v1 |
 | `POST /v1/workflows`, `GET /v1/workflows/{id}` | Planned v1 |
@@ -235,6 +241,9 @@ Copy `.env.example` to `.env`. Key variables:
 | `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | Object storage credentials |
 | `S3_BUCKET_NAME` | Bucket for uploaded documents |
 | `OPENAI_API_KEY` | Used by extraction agents |
+| `VISION_LLM_PROVIDER` | Vision extraction provider (`openai` today) |
+| `VISION_LLM_MODEL` | Vision-capable model id, e.g. `gpt-4o` |
+| `VISION_PAGE_DPI` | DPI used when rendering PDF pages before extraction |
 
 ---
 

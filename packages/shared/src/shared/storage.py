@@ -65,6 +65,14 @@ class StorageClient:
             ContentType=mime_type,
         )
 
+    # ── Server-side download ─────────────────────────────────────────────────
+
+    def download_bytes(self, key: str) -> bytes:
+        """Download an object's raw bytes directly (used by worker-side processing)."""
+        response = self._client.get_object(Bucket=self._bucket, Key=key)
+        body: bytes = response["Body"].read()
+        return body
+
     # ── Presigned URLs ───────────────────────────────────────────────────────
 
     def presigned_upload_url(
